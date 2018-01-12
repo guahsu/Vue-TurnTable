@@ -96,6 +96,7 @@
                   td
                     button.btn.btn-sm.btn-danger(@click.prevent="removeGiftData(index)") 移除
         .modal-footer
+          button.btn.btn-sm.btn-success(@click.prevent="saveGiftDataToLocalStorage") 儲存設定
           button.btn.btn-sm.btn-secondary.ml-2.px-3(@click.prevent="gifts = []") 清空重設
   //- 轉盤設定視窗
   #config.modal.fade(:style="{'opacity': editAreaOpacity}")
@@ -281,6 +282,20 @@
       setGiftsByTextArea(e) {
         this.gifts = JSON.parse(e.target.value);
       },
+      /** 儲存區塊設定值(LocalStorage) */
+      saveGiftDataToLocalStorage() {
+        const localDatas = JSON.stringify(this.gifts);
+        localStorage.setItem('turnTableGiftDatas', localDatas);
+      },
+      /** 讀取區塊設定值(LocalStorage) */
+      getGiftDataFromLocalStorage() {
+        const localDatas = JSON.parse(localStorage.getItem('turnTableGiftDatas'));
+        return localDatas;
+      },
+      /** 設定區塊預設值 */
+      setDefaultSector() {
+        this.sector = Object.assign({}, this.defaultSector);
+      },
       /** 設定轉盤預設值 */
       setDefaultConfig() {
         // 計算當前視窗寬高，取低值*0.6當基準值設定轉盤大小
@@ -289,10 +304,6 @@
         this.defaultConfig.baseSize = innerHeight > innerWidth ?
           Math.floor(innerWidth * 0.8) : Math.floor(innerHeight * 0.6);
         this.config = Object.assign({}, this.defaultConfig);
-      },
-      /** 設定區塊預設值 */
-      setDefaultSector() {
-        this.sector = Object.assign({}, this.defaultSector);
       },
       /** 轉盤內容繪製 */
       drawCanvas() {
@@ -421,7 +432,8 @@
       // 基礎預設值設定
       this.setDefaultConfig();
       this.setDefaultSector();
-      this.gifts = Array.from(this.defaultGifts);
+      // 若沒有儲存在LocalStorage中的資料就用預設值
+      this.gifts = this.getGiftDataFromLocalStorage() || Array.from(this.defaultGifts);
     },
     mounted() {
       // 建立轉盤
