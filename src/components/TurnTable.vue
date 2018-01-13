@@ -346,6 +346,7 @@
         const ctx = turnTable.getContext('2d');
         turnTable.setAttribute('width', this.config.baseSize);
         turnTable.setAttribute('height', this.config.baseSize);
+        this.giftsDeg = [];
         let lastAngle = 0;
         // 內部區塊繪製
         this.gifts.forEach((data, index) => {
