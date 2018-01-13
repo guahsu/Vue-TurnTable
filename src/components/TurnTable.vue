@@ -172,14 +172,19 @@
     name: 'TurnTable',
     data() {
       return {
-        /** 狀態 */
+        /** 轉動狀態 */
         isRunning: false,
+        /** 手機瀏覽器，用來開關input-color */
         isMobile: false,
-        // 編輯模式: true=區塊設定模式、false="資料編輯模式"
+        /** 編輯模式: true=區塊設定模式、false="資料編輯模式" */
         sectorEditMode: true,
+        /** 是否顯示設定按鈕 */
         showButtons: true,
+        /** 編輯視窗背景透明度 */
         editAreaOpacity: 1,
+        /** 獎項中獎角度儲存 */
         giftsDeg: [],
+        /** 轉動狀態 */
         turnStatus: {
           currentDeg: 0,
           targetDeg: 0,
