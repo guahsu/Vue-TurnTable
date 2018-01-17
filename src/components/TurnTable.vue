@@ -72,8 +72,11 @@
                 input.mr-2(v-if="!isMobile", type="color", v-model="sector.textColor")
                 input.form-control.form-control-sm(type="text", v-model="sector.textColor", :placeholder='config.textColor')
               .form-group.w-100.mb-2
+                label.mr-2 文字尺寸:
+                input.form-control.form-control-sm(type="number", placeholder="請輸入文字尺寸", v-model="sector.textSize")
+              .form-group.w-100.mb-2
                 label.mr-2 文字內容:
-                input.form-control.form-control-sm(type="text", placeholder="請輸入文字", v-model="sector.text")
+                input.form-control.form-control-sm(type="text", placeholder="請輸入文字內容", v-model="sector.text")
               .form-group.w-100.mb-2
                 label.mr-2 出現機率:
                 input.form-control.form-control-sm(type="number", min="1", step="0.1", v-model.number="sector.chance")
@@ -193,8 +196,8 @@
         /** 獎項設定資料 */
         gifts: [],
         defaultGifts: [
-          { chance: 10, text: 'RED', textColor: '', backgroundColor: '' },
-          { chance: 10, text: 'BLUE', textColor: '', backgroundColor: '' },
+          { chance: 10, text: 'RED', textColor: '', textSize: '', backgroundColor: '' },
+          { chance: 10, text: 'BLUE', textColor: '', textSize: '', backgroundColor: '' },
         ],
         /** 中獎清單 */
         currentResult: '',
@@ -205,6 +208,7 @@
           chance: 10,
           text: '',
           textColor: '',
+          textSize: this.defaultSectorTextSize,
           backgroundColor: this.defaultSectorColor,
         },
         /** 轉盤設定 */
@@ -273,6 +277,10 @@
       /** 預設區塊色 */
       defaultSectorColor() {
         return this.getDefaultSectorColor();
+      },
+      /** 預設區塊文字大小 */
+      defaultSectorTextSize() {
+        return Math.floor(this.config.baseSize / 15);
       },
     },
     methods: {
@@ -381,7 +389,8 @@
           // 內容文字繪製
           ctx.rotate(angle / 2);
           ctx.fillStyle = data.textColor || this.config.textColor;
-          ctx.font = `${this.config.baseSize / 15}px Microsoft JhengHei`;
+          ctx.font = data.textSize ?
+            `${data.textSize}px Microsoft JhengHei` : `${this.defaultSectorTextSize}px Microsoft JhengHei`;
           ctx.textBaseline = 'middle';
           ctx.fillText(data.text, centerPoint / 1.8, 0);
           //
@@ -538,6 +547,7 @@
     user-select: none;
     &__body {
       @include positionCenter();
+      font-size: 0px;
     }
     &__canvas {
       transform: rotate($targetDeg);
