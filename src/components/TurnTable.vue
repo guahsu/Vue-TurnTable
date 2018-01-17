@@ -5,7 +5,7 @@
   //- 轉盤本體
   .turnTable(v-show="true")
     .turnTable__body
-      canvas.turnTable__canvas(:class="animitionType")
+      canvas.turnTable__canvas(:class="animitionType", :style="{'width': `${config.baseSize}px`, 'height': `${config.baseSize}px`}")
     .turnTable__button(@click="animitionProc")
       .turnTable__arrow
       .turnTable__button__content
@@ -73,7 +73,7 @@
                 input.form-control.form-control-sm(type="text", v-model="sector.textColor", :placeholder='config.textColor')
               .form-group.w-100.mb-2
                 label.mr-2 文字尺寸:
-                input.form-control.form-control-sm(type="number", placeholder="請輸入文字尺寸", v-model="sector.textSize")
+                input.form-control.form-control-sm(type="number", min="10", placeholder="請輸入文字尺寸", v-model="sector.textSize")
               .form-group.w-100.mb-2
                 label.mr-2 文字內容:
                 input.form-control.form-control-sm(type="text", placeholder="請輸入文字內容", v-model="sector.text")
@@ -208,7 +208,7 @@
           chance: 10,
           text: '',
           textColor: '',
-          textSize: this.defaultSectorTextSize,
+          textSize: '',
           backgroundColor: this.defaultSectorColor,
         },
         /** 轉盤設定 */
@@ -278,9 +278,9 @@
       defaultSectorColor() {
         return this.getDefaultSectorColor();
       },
-      /** 預設區塊文字大小 */
-      defaultSectorTextSize() {
-        return Math.floor(this.config.baseSize / 15);
+      /** 取得裝置像素比例 */
+      pixelRatio() {
+        return window.devicePixelRatio || 1;
       },
     },
     methods: {
@@ -349,11 +349,11 @@
       },
       /** 轉盤內容繪製 */
       drawCanvas() {
-        const centerPoint = this.config.baseSize / 2;
+        const centerPoint = this.config.baseSize * (this.pixelRatio / 2);
         const turnTable = document.querySelector('.turnTable__canvas');
         const ctx = turnTable.getContext('2d');
-        turnTable.setAttribute('width', this.config.baseSize);
-        turnTable.setAttribute('height', this.config.baseSize);
+        turnTable.setAttribute('width', this.config.baseSize * this.pixelRatio);
+        turnTable.setAttribute('height', this.config.baseSize * this.pixelRatio);
         this.giftsDeg = [];
         let lastAngle = 0;
         // 內部區塊繪製
@@ -383,16 +383,16 @@
           ctx.fillStyle = data.backgroundColor || this.getDefaultSectorColor(index);
           ctx.fill();
           /** 邊框繪製 */
-          ctx.lineWidth = this.config.borderWidth;
+          ctx.lineWidth = this.config.borderWidth * this.pixelRatio;
           ctx.strokeStyle = this.config.borderColor;
           ctx.stroke();
           // 內容文字繪製
           ctx.rotate(angle / 2);
           ctx.fillStyle = data.textColor || this.config.textColor;
           ctx.font = data.textSize ?
-            `${data.textSize}px Microsoft JhengHei` : `${this.defaultSectorTextSize}px Microsoft JhengHei`;
+            `${data.textSize}px Microsoft JhengHei` : `${(this.config.baseSize / data.text.length) / this.pixelRatio}px Microsoft JhengHei`;
           ctx.textBaseline = 'middle';
-          ctx.fillText(data.text, centerPoint / 1.8, 0);
+          ctx.fillText(data.text, centerPoint / 2.3, 0);
           //
           ctx.restore();
         });
@@ -453,7 +453,7 @@
       buideTurnTable() {
         // CSS值設定
         document.documentElement.style.setProperty('--turnTableSize', `${this.config.baseSize + 20}px`);
-        document.documentElement.style.setProperty('--buttonSize', `${this.config.baseSize / 3}px`);
+        document.documentElement.style.setProperty('--buttonSize', `${this.config.baseSize / 3.5}px`);
         document.documentElement.style.setProperty('--buttonFontSize', `${this.config.baseSize / 10}px`);
         document.documentElement.style.setProperty('--arrowHeight', `${this.config.baseSize / 7}px`);
         document.documentElement.style.setProperty('--arrowWidth', `${this.config.baseSize / 5}px`);
