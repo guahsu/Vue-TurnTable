@@ -83,7 +83,7 @@
                           th(scope="col", width="40%") 文字內容
                           th(scope="col", width="10%") 文字大小
                           th(scope="col", width="10%") 功能
-                      draggable.dragArea(:gift="gifts", :element="'tbody'")
+                      draggable.dragArea(:list="gifts", :element="'tbody'")
                         tr(v-for="(gift, index) in gifts")
                           //- 機率
                           td
@@ -115,10 +115,10 @@
                           //- 功能按鈕
                           td
                             .input-group.text-center.justify-content-center
-                              button.btn.btn-sm.btn-outline-info.mx-1(v-show="!gift.edit", @click.prevent="editGiftData(gift)") 編輯
+                              button.btn.btn-sm.btn-outline-info.mx-1(v-show="!gift.edit", @click.prevent="editGiftData(index)") 編輯
                               button.btn.btn-sm.btn-outline-danger.mx-1(v-show="!gift.edit", @click.prevent="removeGiftData(index)") 移除
-                              button.btn.btn-sm.btn-outline-success.mx-1(v-show="gift.edit", @click.prevent="saveGiftData(gift)") 儲存
-                              button.btn.btn-sm.btn-outline-secondary.mx-1(v-show="gift.edit", @click.prevent="cancleGiftData(gift)") 取消
+                              button.btn.btn-sm.btn-outline-success.mx-1(v-show="gift.edit", @click.prevent="saveGiftData(index)") 儲存
+                              button.btn.btn-sm.btn-outline-secondary.mx-1(v-show="gift.edit", @click.prevent="cancleGiftData(index)") 取消
                   button.btn.btn-sm.btn-outline-success.px-5.mx-1(@click="addGiftData") 新增區塊
                 //- 資料編輯模式
                 .editByDate.w-100.my-2(v-else)
@@ -265,8 +265,11 @@
         }
       },
       /** 偵聽當資料變更就重建轉盤 */
-      gifts() {
-        this.buideTurnTable();
+      gifts: {
+        handler() {
+          this.buideTurnTable();
+        },
+        deep: true,
       },
       config: {
         handler() {
@@ -378,14 +381,17 @@
       //------------------------------------
       // --獎品編輯 By List Methods
       //------------------------------------
-      editGiftData(gift) {
+      editGiftData(index) {
+        const gift = this.gifts[index];
         gift.clone = Object.assign({}, gift);
         gift.edit = true;
       },
-      saveGiftData(gift) {
+      saveGiftData(index) {
+        const gift = this.gifts[index];
         gift.edit = false;
       },
-      cancleGiftData(gift) {
+      cancleGiftData(index) {
+        let gift = this.gifts[index];
         gift = Object.assign(gift, gift.clone);
         delete gift.clone;
         gift.edit = false;
