@@ -62,7 +62,7 @@
           .tab-content
             //- 區塊設定     
             #edit-data.tab-pane.fade.show.active.py-3.px-1(role='tabpanel')     
-              form.form-inline
+              form.form-inline(@submit.prevent="")
                 .form-group.w-100.mb-2
                   label.mr-2 編輯模式:
                   .form-check.ml-4.ml-sm-0.mr-sm-2
@@ -126,7 +126,7 @@
                   textarea.form-control.form-control-sm.w-100(:value="showGiftsToTextArea", @input="setGiftsByTextArea")
             //- 轉盤設定
             #edit-config.tab-pane.fade.py-3.px-1(role='tabpanel')
-              form.form-inline.row
+              form.form-inline.row(@submit.prevent="")
                 .form-group.w-100.mb-3.col-md-4
                   label.mr-2 停止模式:
                   .form-check.ml-4.ml-sm-0.mr-sm-2
