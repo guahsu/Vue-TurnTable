@@ -1,5 +1,6 @@
 <template lang="pug">
 .container
+  h1 {{ currentResult || '2' }}
   //- 提示文字
   .alert.alert-info.text-center.mx-auto.w-75.mt-5.fade(v-if="config.showAlert", :class="{'alert--show': currentResult}") {{ currentResult }}
   //- 轉盤本體
@@ -12,13 +13,12 @@
         span.turnTable__button__text {{ config.buttonText }}
   //- 設定按鈕
   .buttonArea
-    input#showButtons.mr-2(type="checkbox", :checked="!showButtons", v-model="showButtons")
+    input#showButtons.mx-1(type="checkbox", :checked="!showButtons", v-model="showButtons")
     label.text-sm-right(for="showButtons") 顯示設定
     br
     .buttons(v-show="showButtons")
       button.btn.btn-outline-danger.mr-4(data-toggle="modal", data-target="#resultList", v-if="config.autoStop") 轉出結果
-      button.btn.btn-outline-info.mr-4(data-toggle="modal", data-target="#sector") 區塊編輯
-      button.btn.btn-outline-warning(data-toggle="modal", data-target="#config") 轉盤設定
+      button.btn.btn-outline-info(data-toggle="modal", data-target="#dataSetting") 轉盤設定
   //- 轉出結果視窗
   #resultList.modal.fade(v-if="config.autoStop")
     .modal-dialog(role="document")
@@ -40,139 +40,163 @@
                   td.text-center {{ result }}
         .modal-footer
           button.btn.btn-sm.btn-outline-secondary.ml-2.px-3(@click.prevent="resultList = []") 清空資訊
-          button.btn.btn-sm.btn-secondary.ml-2.px-3(data-dismiss="modal") 關閉
-  //- 區塊設定視窗
-  #sector.modal.fade(:style="{'opacity': editAreaOpacity}")
-    .modal-dialog(role="document")
+          button.btn.btn-sm.btn-secondary.ml-2.px-3(data-dismiss="modal") 關閉      
+  //- 轉盤資訊設定視窗
+  #dataSetting.modal.fade(:style="{'opacity': editAreaOpacity}")
+    .modal-dialog.modal-lg(role="document")
       .modal-content
         .modal-header
-          h5.modal-title 區塊編輯
+          h5.modal-title 轉盤資訊設定
           label.text-sm.ml-3 | 背景透明度:
           input(type="range", min="0.1", max="1", step="0.1", v-model="editAreaOpacity")
           button.close(data-dismiss="modal")
             span &times;
         .modal-body
-          form.form-inline(@submit.prevent="addGiftData")
-            .form-group.w-100.mb-2
-              label.mr-2 編輯模式:
-              .form-check.ml-4.ml-sm-0.mr-sm-2
-                input#editBySet.form-check-input(type="radio", name="editMode", :value="true", v-model="sectorEditMode", checked)
-                label(for="editBySet") 單塊新增
-              .form-check.ml-4.ml-sm-0
-                input#editByData.form-check-input(type="radio", name="editMode", :value="false", v-model="sectorEditMode")
-                label(for="editByData") 資料編輯(Array-Object)
-            //- 單塊新增模式
-            .editBySet.w-100(v-if="sectorEditMode")
-              .form-group.w-100.mb-2
-                label.mr-2 背景顏色:
-                input.mr-2(v-if="!isMobile", type="color", v-model="sector.backgroundColor")
-                input.form-control.form-control-sm(type="text", v-model="sector.backgroundColor", :placeholder='getDefaultSectorColor()')
-              .form-group.w-100.mb-2
-                label.mr-2 文字顏色:
-                input.mr-2(v-if="!isMobile", type="color", v-model="sector.textColor")
-                input.form-control.form-control-sm(type="text", v-model="sector.textColor", :placeholder='config.textColor')
-              .form-group.w-100.mb-2
-                label.mr-2 文字尺寸:
-                input.form-control.form-control-sm(type="number", min="10", placeholder="請輸入文字尺寸", v-model="sector.textSize")
-              .form-group.w-100.mb-2
-                label.mr-2 文字內容:
-                input.form-control.form-control-sm(type="text", placeholder="請輸入文字內容", v-model="sector.text")
-              .form-group.w-100.mb-2
-                label.mr-2 出現機率:
-                input.form-control.form-control-sm(type="number", min="1", step="0.1", v-model.number="sector.chance")
-              .form-group.w-100.mb-2
-                button.btn.btn-sm.btn-success.px-5(type="submit") 新增
-            //- 資料編輯模式
-            .editByDate.w-100.my-2(v-else)
-              textarea.form-control.form-control-sm.w-100(:value="showGiftsToTextArea", @input="setGiftsByTextArea")
-            //- 設定結果顯示區
-            .table-responsive
-              table.table.table-bordered.table-sm.mt-3
-                thead.text-center
-                  tr
-                    th(scope="col") 區塊占比
-                    th(scope="col") 背景顏色
-                    th(scope="col") 文字顏色
-                    th(scope="col") 文字內容
-                    th(scope="col") 移除
-                tbody.text-center
-                  tr(v-for="gift, index in gifts")
-                    td {{ getChance(gift.chance) }}
-                    td(:style="{'background-color': gift.backgroundColor || getDefaultSectorColor(index)}")
-                      | {{ gift.backgroundColor || getDefaultSectorColor(index) }}
-                    td(:style="{'background-color': gift.textColor || config.textColor }")
-                      | {{ gift.textColor || config.textColor }}
-                    td {{ gift.text }}
-                    td
-                      button.btn.btn-sm.btn-outline-danger(@click.prevent="removeGiftData(index)") 移除
+          //- 左側編輯區
+          ul.nav.nav-tabs(role='tablist')
+            li.nav-item.text-center
+              a.nav-link.active(data-toggle='tab', href='#edit-data', role='tab') 區塊設定
+            li.nav-item.text-center
+              a.nav-link(data-toggle='tab', href='#edit-config', role='tab') 轉盤設定
+            li.nav-item.text-center
+              a.nav-link(data-toggle='tab', href='#dataList', role='tab') 設定集
+          .tab-content
+            //- 區塊設定     
+            #edit-data.tab-pane.fade.show.active.py-3.px-1(role='tabpanel')     
+              form.form-inline
+                .form-group.w-100.mb-2
+                  label.mr-2 編輯模式:
+                  .form-check.ml-4.ml-sm-0.mr-sm-2
+                    input#editBySet.form-check-input(type="radio", name="editMode", :value="true", v-model="giftEditMode", checked)
+                    label(for="editBySet") 單塊新增
+                  .form-check.ml-4.ml-sm-0
+                    input#editByData.form-check-input(type="radio", name="editMode", :value="false", v-model="giftEditMode")
+                    label(for="editByData") 資料編輯(Array-Object)
+                //- 單塊新增模式
+                .editBySet.w-100(v-if="giftEditMode")
+                  .table-responsive
+                    table.table.table-bordered.table-hover.table-sm.mt-1
+                      thead.text-center
+                        tr
+                          th(scope="col", width="10%") 區塊占比
+                          th(scope="col", width="15%") 背景顏色
+                          th(scope="col", width="15%") 文字顏色
+                          th(scope="col", width="40%") 文字內容
+                          th(scope="col", width="10%") 文字大小
+                          th(scope="col", width="10%") 功能
+                      draggable.dragArea(:gift="gifts", :element="'tbody'")
+                        tr(v-for="(gift, index) in gifts")
+                          //- 機率
+                          td
+                            .input-group.justify-content-center
+                              span(v-show="!gift.edit") {{ getChance(gift.chance) }}
+                              input.form-control.form-control-sm(v-show="gift.edit", type="number", min="1", step="0.1",  v-model.number="gift.chance")
+                          //- 背景色
+                          td(:style="{'background-color': gift.backgroundColor || getDefaultGiftBackgroundColor(index)}")
+                            .input-group.justify-content-center
+                              span(v-show="!gift.edit") {{ gift.backgroundColor || '預設' }}
+                              input.mx-1(v-if="!isMobile", v-show="gift.edit", type="color", v-model="gift.backgroundColor", :style="{ width: '25px' }")
+                              input.form-control.form-control-sm(v-show="gift.edit", type="text", v-model="gift.backgroundColor", :placeholder='getDefaultGiftBackgroundColor()')
+                          //- 文字色
+                          td(:style="{'background-color': gift.textColor || config.textColor }")
+                            .input-group.justify-content-center
+                              span(v-show="!gift.edit") {{ gift.textColor || '預設' }}
+                              input.mx-1(v-if="!isMobile", v-show="gift.edit", type="color", v-model="gift.textColor", :style="{ width: '25px' }")
+                              input.form-control.form-control-sm(v-show="gift.edit", type="text", v-model="gift.textColor", :placeholder='config.textColor')
+                          //- 文字內容
+                          td
+                            .input-group
+                              span(v-show="!gift.edit") {{ gift.text }}
+                              input.form-control.form-control-sm(v-show="gift.edit", type="text", v-model="gift.text")
+                          //- 文字大小
+                          td
+                            .input-group.justify-content-center
+                              span(v-show="!gift.edit") {{ gift.textSize || '預設' }}
+                              input.form-control.form-control-sm(v-show="gift.edit", type="number", v-model="gift.textSize")
+                          //- 功能按鈕
+                          td
+                            .input-group.text-center.justify-content-center
+                              button.btn.btn-sm.btn-outline-info.mx-1(v-show="!gift.edit", @click.prevent="editGiftData(gift)") 編輯
+                              button.btn.btn-sm.btn-outline-danger.mx-1(v-show="!gift.edit", @click.prevent="removeGiftData(index)") 移除
+                              button.btn.btn-sm.btn-outline-success.mx-1(v-show="gift.edit", @click.prevent="saveGiftData(gift)") 儲存
+                              button.btn.btn-sm.btn-outline-secondary.mx-1(v-show="gift.edit", @click.prevent="cancleGiftData(gift)") 取消
+                  button.btn.btn-sm.btn-outline-success.px-5.mx-1(@click="addGiftData") 新增區塊
+                //- 資料編輯模式
+                .editByDate.w-100.my-2(v-else)
+
+                  textarea.form-control.form-control-sm.w-100(:value="showGiftsToTextArea", @input="setGiftsByTextArea")
+            //- 轉盤設定
+            #edit-config.tab-pane.fade.py-3.px-1(role='tabpanel')
+              form.form-inline.row
+                .form-group.w-100.mb-3.col-md-4
+                  label.mr-2 停止模式:
+                  .form-check.ml-4.ml-sm-0.mr-sm-2
+                    input#autoStopTrue.form-check-input(type="radio", name="autoStop", :value="true", v-model="config.autoStop", checked)
+                    label(for="autoStopTrue") 自動
+                  .form-check.ml-4.ml-sm-0
+                    input#autoStopFalse.form-check-input(type="radio", name="autoStop", :value="false", v-model="config.autoStop")
+                    label(for="autoStopFalse") 手動
+                .form-group.w-100.mb-3.col-md-8
+                    label.mr-2 轉出資訊:
+                    .form-check.ml-4.ml-sm-0.mr-sm-2
+                      input#showAlertTrue.form-check-input(type="radio", name="showAlert", :value="true", v-model="config.showAlert", checked)
+                      label(for="showAlertTrue") 顯示
+                    .form-check.ml-4.ml-sm-0
+                      input#showAlertFalse.form-check-input(type="radio", name="showAlert", :value="false", v-model="config.showAlert")
+                      label(for="showAlertFalse") 關閉
+                .form-group.w-100.mb-3.col-md-4
+                    label {{ config.autoStop ? '動畫時間長度(s):' : '轉10圈的轉速(s):' }}
+                    input.form-control.form-control-sm.w-100(type="number", min="1", step="1", v-model.number="config.runTime")
+                .form-group.w-100.mb-3.col-md-4
+                  label 轉盤尺寸設定(px):
+                  input.form-control.form-control-sm.w-100(type="number", step="1", min="150", v-model.number="config.baseSize")
+                .form-group.w-100.mb-3.col-md-4(v-if="config.autoStop")
+                  label 最大回彈角度(百分比):
+                  input.form-control.form-control-sm.w-100(type="number", step="0.01", min="0.1", max="1", v-model.number="config.rollBackRange", :readonly="!config.autoStop")
+                .form-group.w-100.mb-3.col-md-4
+                  label 區塊預設色(單數):
+                  .input-group.w-100
+                    input.mx-1.my-1(v-if="!isMobile", type="color", v-model="config.singleColor", :style="{ width: '25px' }")
+                    input.form-control.form-control-sm(type="text", v-model="config.singleColor")
+                .form-group.w-100.mb-3.col-md-4
+                  label 區塊預設色(雙數):
+                  .input-group.w-100
+                    input.mx-1.my-1(v-if="!isMobile", type="color", v-model="config.doubleColor", :style="{ width: '25px' }")
+                    input.form-control.form-control-sm(type="text", v-model="config.doubleColor")
+                .form-group.w-100.mb-3.col-md-4
+                  label 區塊邊框寬度:
+                  input.form-control.form-control-sm.w-100(type="number", min="1", step="1", v-model.number="config.borderWidth")
+                .form-group.w-100.mb-3.col-md-4
+                  label 按鈕顏色:
+                  .input-group.w-100
+                    input.mx-1.my-1(v-if="!isMobile", type="color", v-model="config.buttonColor", :style="{ width: '25px' }")
+                    input.form-control.form-control-sm(type="text", v-model="config.buttonColor")
+                .form-group.w-100.mb-3.col-md-8
+                  label 按鈕文字:
+                  input.form-control.form-control-sm.w-100(type="text", v-model="config.buttonText")
+            //- 設定集顯示區
+            #dataList.tab-pane.fade.py-3.px-1(role='tabpanel')
+              template(v-for="(data, index) in dataList")
+                button.btn.btn-sm.btn-outline-info.px-3.m-1(@click.prevent="loadData(index)") {{ data.dataName }}
         .modal-footer
-          button.btn.btn-sm.btn-outline-success(@click.prevent="setGiftDataToLocalStorage") 儲存設定
-          button.btn.btn-sm.btn-outline-secondary.ml-2.px-3(@click.prevent="gifts = getDefaultGfits()") 清空重設
-          button.btn.btn-sm.btn-secondary.ml-2.px-3(data-dismiss="modal") 關閉
-  //- 轉盤設定視窗
-  #config.modal.fade(:style="{'opacity': editAreaOpacity}")
-    .modal-dialog(role="document")
-      .modal-content
-        .modal-header
-          h5.modal-title 轉盤設定
-          label.text-sm.ml-3 | 背景透明度:
-          input(type="range", min="0.1", max="1", step="0.1", v-model="editAreaOpacity")
-          button.close(data-dismiss="modal")
-            span &times;
-        .modal-body
+          //- 設定名稱
           form.form-inline(@submit.prevent="")
-            .form-group.w-100.mb-2
-              label.mr-2 停止模式:
-              .form-check.ml-4.ml-sm-0.mr-sm-2
-                input#autoStopTrue.form-check-input(type="radio", name="autoStop", :value="true", v-model="config.autoStop", checked)
-                label(for="autoStopTrue") 自動
-              .form-check.ml-4.ml-sm-0
-                input#autoStopFalse.form-check-input(type="radio", name="autoStop", :value="false", v-model="config.autoStop")
-                label(for="autoStopFalse") 手動
-            .form-group.w-100.mb-2(v-if="config.autoStop")
-              label.mr-2 轉出資訊:
-              .form-check.ml-4.ml-sm-0.mr-sm-2
-                input#showAlertTrue.form-check-input(type="radio", name="showAlert", :value="true", v-model="config.showAlert", checked)
-                label(for="showAlertTrue") 顯示
-              .form-check.ml-4.ml-sm-0
-                input#showAlertFalse.form-check-input(type="radio", name="showAlert", :value="false", v-model="config.showAlert")
-                label(for="showAlertFalse") 關閉
-            .form-group.w-100.mb-2
-              label.mr-2 {{ config.autoStop ? '動畫時間長度(s):' : '轉10圈的轉速(s):' }}
-              input.form-control.form-control-sm(type="number", min="1", step="1", v-model.number="config.runTime")
-            .form-group.w-100.mb-2
-              label.mr-2 轉盤尺寸設定(px):
-              input.form-control.form-control-sm(type="number", step="1", min="150", v-model.number="config.baseSize")
-            .form-group.w-100.mb-2(v-if="config.autoStop")
-              label.mr-2 回彈角度設定(百分比）:
-              input.form-control.form-control-sm(type="number", step="0.01", min="0.1", max="1", v-model.number="config.rollBackRange", :readonly="!config.autoStop")
-            .form-group.w-100.mb-2
-              label.mr-2 區塊預設色(單數):
-              input.mr-2(v-if="!isMobile", type="color", v-model="config.singleColor")
-              input.form-control.form-control-sm(type="text", v-model="config.singleColor")
-            .form-group.w-100.mb-2
-              label.mr-2 區塊預設色(雙數):
-              input.mr-2(v-if="!isMobile", type="color", v-model="config.doubleColor")
-              input.form-control.form-control-sm(type="text", v-model="config.doubleColor")
-            .form-group.w-100.mb-2
-              label.mr-2 區塊邊框寬度
-              input.form-control.form-control-sm(type="number", min="1", step="1", v-model.number="config.borderWidth")
-            .form-group.w-100.mb-2
-              label.mr-2 按鈕顏色:
-              input.mr-2(v-if="!isMobile", type="color", v-model="config.buttonColor")
-              input.form-control.form-control-sm(type="text", v-model="config.buttonColor")
-            .form-group.w-100.mb-2
-              label.mr-2 按鈕文字:
-              input.form-control.form-control-sm(type="text", v-model="config.buttonText")
-        .modal-footer
-          button.btn.btn-sm.btn-outline-success(@click.prevent="setConfigToLocalStorage") 儲存設定
-          button.btn.btn-sm.btn-outline-secondary.ml-2.px-3(@click.prevent="config = getDefaultConfig()") 重新設定
-          button.btn.btn-sm.btn-secondary.ml-2.px-3(data-dismiss="modal") 關閉
+            label.mr-2 設定檔名稱:
+            input.form-control.form-control-sm(type="text", v-model="dataName")
+          //- 設定檔功能按鈕
+          button.btn.btn-sm.btn-outline-primary.mx-1.px-3(@click.prevent="newData") 新增
+          button.btn.btn-sm.btn-outline-success.mx-1.px-3(@click.prevent="saveData()") 儲存
+          button.btn.btn-sm.btn-outline-danger.mx-1.px-3(v-if="dataNo !== 0" @click.prevent="deleteData(dataNo)") 刪除
+          button.btn.btn-sm.btn-outline-secondary.mx-1.px-3(@click.prevent="setDefaultDatas()") 預設
+          button.btn.btn-sm.btn-secondary(data-dismiss="modal") 關閉
 </template>
 
 <script>
+  import draggable from 'vuedraggable';
+
   export default {
     name: 'TurnTable',
+    components: { draggable },
     data() {
       return {
         /** 轉動狀態 */
@@ -180,37 +204,41 @@
         /** 手機瀏覽器，用來開關input-color */
         isMobile: false,
         /** 編輯模式: true=區塊設定模式、false="資料編輯模式" */
-        sectorEditMode: true,
+        giftEditMode: true,
         /** 是否顯示設定按鈕 */
         showButtons: true,
         /** 編輯視窗背景透明度 */
         editAreaOpacity: 1,
-        /** 獎項中獎角度儲存 */
-        giftsDeg: [],
         /** 轉動狀態 */
         turnStatus: {
           currentDeg: 0,
           targetDeg: 0,
           rollBackDeg: 0,
         },
-        /** 獎項設定資料 */
-        gifts: [],
-        defaultGifts: [
-          { chance: 10, text: 'RED', textColor: '', textSize: '', backgroundColor: '' },
-          { chance: 10, text: 'BLUE', textColor: '', textSize: '', backgroundColor: '' },
-        ],
+        /** 獎項中獎角度儲存 */
+        giftDegs: [],
         /** 中獎清單 */
         currentResult: '',
         resultList: [],
-        /** 區塊設定 */
-        sector: {},
-        defaultSector: {
+        /** 設定紀錄 */
+        dataList: [],
+        dataNo: 0,
+        dataName: '預設',
+        /** 獎項設定資料 */
+        gift: {},
+        defaultGift: {
           chance: 10,
           text: '',
           textColor: '',
-          textSize: '',
-          backgroundColor: this.defaultSectorColor,
+          textSize: this.defaultGiftTextSize,
+          backgroundColor: this.defaultGiftBackgroundColor,
+          edit: true,
         },
+        gifts: [],
+        defaultGifts: [
+          { chance: 10, text: 'RED', textColor: '', textSize: '', backgroundColor: '', edit: false },
+          { chance: 10, text: 'BLUE', textColor: '', textSize: '', backgroundColor: '', edit: false },
+        ],
         /** 轉盤設定 */
         config: {},
         defaultConfig: {
@@ -275,8 +303,8 @@
         return totalChance;
       },
       /** 預設區塊色 */
-      defaultSectorColor() {
-        return this.getDefaultSectorColor();
+      defaultGiftBackgroundColor() {
+        return this.getDefaultGiftBackgroundColor();
       },
       /** 取得裝置像素比例(至少用兩倍來避免canvas繪製模糊) */
       pixelRatio() {
@@ -293,41 +321,103 @@
         return `${((data / this.countDataChance) * 100).toFixed(1)}%`;
       },
       /** 取得預設區塊色彩 */
-      getDefaultSectorColor(index) {
+      getDefaultGiftBackgroundColor(index) {
         const number = index || this.gifts.length;
         return number % 2 === 0 ? this.config.doubleColor : this.config.singleColor;
       },
-      /** 新增區塊資料 */
-      addGiftData() {
-        this.gifts.push(this.sector);
-        this.setDefaultSector();
+      //------------------------------------
+      // --設定檔 Methods
+      //------------------------------------
+      /** 新增設定檔 */
+      newData() {
+        this.dataName = '未命名';
+        this.dataNo = this.dataList.length;
+        this.setDefaultDatas();
       },
-      /** 移除區塊資料 */
+      /** 儲存設定檔 */
+      saveData() {
+        const currentData = {
+          dataName: this.dataName,
+          gifts: Array.from(this.gifts),
+          config: Object.assign({}, this.config),
+        };
+        // 使用.$set可以避免下面兩種更動Array索引資料動態顯示上的問題
+        this.$set(this.dataList, this.dataNo, currentData);
+        // this.dataList[this.dataNo] = currentData; // 這會導致資料綁定的動態顯示失效
+        // this.dataList.splice(this.dataNo, 0, currentData); // 這樣會一直新增XD
+        // 存到localStrorage
+        this.setDataListToLocalStorage();
+      },
+      /** 讀取設定檔 */
+      loadData(index) {
+        this.dataNo = index;
+        this.dataName = this.dataList[index].dataName;
+        this.gifts = this.dataList[index].gifts;
+        this.config = this.dataList[index].config;
+      },
+      /** 刪除設定檔 */
+      deleteData(index) {
+        if (confirm('確定刪除這個設定檔嗎？')) {
+          this.dataList.splice(index, 1);
+          this.loadData(0);
+        }
+      },
+      /** 還原設定資料至預設值 */
+      setDefaultDatas() {
+        this.gifts = this.getDefaultGfits();
+        this.config = this.getDefaultConfig();
+      },
+      /** 儲存設定檔(LocalStorage) */
+      setDataListToLocalStorage() {
+        const localDatas = JSON.stringify(this.dataList);
+        localStorage.setItem('turnTableDataList', localDatas);
+      },
+      /** 取得設定檔(LocalStorage) */
+      getDataListFromLocalStorage() {
+        return JSON.parse(localStorage.getItem('turnTableDataList'));
+      },
+      //------------------------------------
+      // --獎品編輯 By List Methods
+      //------------------------------------
+      editGiftData(gift) {
+        gift.clone = Object.assign({}, gift);
+        gift.edit = true;
+      },
+      saveGiftData(gift) {
+        gift.edit = false;
+      },
+      cancleGiftData(gift) {
+        gift = Object.assign(gift, gift.clone);
+        delete gift.clone;
+        gift.edit = false;
+      },
+      /** 移除獎品資料 */
       removeGiftData(index) {
         this.gifts.splice(index, 1);
       },
-      /** 取得區塊資料預設值 */
+      //------------------------------------
+      // --獎品編輯 Methods
+      //------------------------------------
+      /** 新增獎品資料 */
+      addGiftData() {
+        this.gifts.push(this.gift);
+        this.setDefaultGift();
+      },
+      /** 取得獎品資料預設值 */
       getDefaultGfits() {
         return Array.from(this.defaultGifts);
       },
-      /** 設定區塊資料(透過區塊編輯Object) */
+      /** 設定獎品資料(透過獎品編輯Object) */
       setGiftsByTextArea(e) {
         this.gifts = JSON.parse(e.target.value);
       },
-      /** 儲存區塊設定值(LocalStorage) */
-      setGiftDataToLocalStorage() {
-        const localDatas = JSON.stringify(this.gifts);
-        localStorage.setItem('turnTableGiftDatas', localDatas);
+      /** 設定獎品資料預設值 */
+      setDefaultGift() {
+        this.gift = Object.assign({}, this.defaultGift);
       },
-      /** 讀取區塊設定值(LocalStorage) */
-      getGiftDataFromLocalStorage() {
-        const localDatas = JSON.parse(localStorage.getItem('turnTableGiftDatas'));
-        return localDatas;
-      },
-      /** 設定區塊預設值 */
-      setDefaultSector() {
-        this.sector = Object.assign({}, this.defaultSector);
-      },
+      //------------------------------------
+      // --轉盤編輯 Methods
+      //------------------------------------
       /** 取得轉盤預設值 */
       getDefaultConfig() {
         // 計算當前視窗寬高，取低值*0.6當基準值設定轉盤大小
@@ -342,11 +432,9 @@
         const localConfig = JSON.stringify(this.config);
         localStorage.setItem('turnTableConfig', localConfig);
       },
-      /** 讀取轉盤設定值(LocalStorage) */
-      getConfigFromLocalStorage() {
-        const localConfig = JSON.parse(localStorage.getItem('turnTableConfig'));
-        return localConfig;
-      },
+      //------------------------------------
+      // --轉盤內容 & 動畫 Methods
+      //------------------------------------
       /** 轉盤內容繪製 */
       drawCanvas() {
         const centerPoint = this.config.baseSize * (this.pixelRatio / 2);
@@ -354,19 +442,19 @@
         const ctx = turnTable.getContext('2d');
         turnTable.setAttribute('width', this.config.baseSize * this.pixelRatio);
         turnTable.setAttribute('height', this.config.baseSize * this.pixelRatio);
-        this.giftsDeg = [];
+        this.giftDegs = [];
         let lastAngle = 0;
         // 內部區塊繪製
-        this.gifts.forEach((data, index) => {
+        this.gifts.forEach((gift, index) => {
           // 計算角度(全部資料機率 / 單片機率 * 360)
-          const deg = (data.chance / this.countDataChance) * 360;
+          const deg = (gift.chance / this.countDataChance) * 360;
           // 計算弧度(角度 * PI / 180)，
           const angle = deg * (Math.PI / 180);
           // 儲存角度範圍
-          this.giftsDeg[index] = {
-            from: index === 0 ? 0 : this.giftsDeg[index - 1].to,
-            to: index === 0 ? deg : this.giftsDeg[index - 1].to + deg,
-            name: data.text,
+          this.giftDegs[index] = {
+            from: index === 0 ? 0 : this.giftDegs[index - 1].to,
+            to: index === 0 ? deg : this.giftDegs[index - 1].to + deg,
+            name: gift.text,
           };
           // 開始繪製
           ctx.save();
@@ -380,7 +468,7 @@
           // 更新最後一次的結束角度
           lastAngle += angle;
           // 區塊底色填充
-          ctx.fillStyle = data.backgroundColor || this.getDefaultSectorColor(index);
+          ctx.fillStyle = gift.backgroundColor || this.getDefaultGiftBackgroundColor(index);
           ctx.fill();
           /** 邊框繪製 */
           ctx.lineWidth = this.config.borderWidth * this.pixelRatio;
@@ -388,12 +476,12 @@
           ctx.stroke();
           // 內容文字繪製
           ctx.rotate(angle / 2);
-          ctx.fillStyle = data.textColor || this.config.textColor;
-          ctx.font = data.textSize ?
-            `${data.textSize}px Microsoft JhengHei` :
-            `${(this.config.baseSize / data.text.length) * (this.pixelRatio / 4)}px Microsoft JhengHei`;
+          ctx.fillStyle = gift.textColor || this.config.textColor;
+          ctx.font = gift.textSize ?
+            `${gift.textSize}px Microsoft JhengHei` :
+            `${(this.config.baseSize / gift.text.length) * (this.pixelRatio / 4)}px Microsoft JhengHei`;
           ctx.textBaseline = 'middle';
-          ctx.fillText(data.text, centerPoint / 2.25, 0);
+          ctx.fillText(gift.text, centerPoint / 2.25, 0);
           //
           ctx.restore();
         });
@@ -440,10 +528,10 @@
         // 計算中獎角度
         const nowDeg = 360 - this.turnStatus.currentDeg;
         // 顯示獎品資料
-        this.giftsDeg.forEach((gift) => {
-          if (nowDeg >= gift.from && nowDeg <= gift.to) {
-            this.resultList.push(gift.name);
-            this.currentResult = gift.name;
+        this.giftDegs.forEach((giftDeg) => {
+          if (nowDeg >= giftDeg.from && nowDeg <= giftDeg.to) {
+            this.resultList.push(giftDeg.name);
+            this.currentResult = giftDeg.name;
             setTimeout(() => {
               this.currentResult = '';
             }, 3500);
@@ -477,10 +565,12 @@
       // 檢查手機模式
       this.isMobile = this.checkMobile();
       // 區塊新增的基礎預設值設定
-      this.setDefaultSector();
+      this.setDefaultGift();
       // 若沒有儲存在LocalStorage中的資料就用預設值
-      this.config = this.getConfigFromLocalStorage() || this.getDefaultConfig();
-      this.gifts = this.getGiftDataFromLocalStorage() || this.getDefaultGfits();
+      this.dataList = this.getDataListFromLocalStorage() || [];
+      this.dataName = this.dataList[0] ? this.dataList[0].dataName : this.dataName;
+      this.config = this.dataList[0] ? this.dataList[0].config : this.getDefaultConfig();
+      this.gifts = this.dataList[0] ? this.dataList[0].gifts : this.getDefaultGfits();
     },
     mounted() {
       // 建立轉盤

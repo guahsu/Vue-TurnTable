@@ -20,7 +20,8 @@
     "pug-loader": "^2.3.0",
     "sass": "^1.0.0-beta.4",
     "sass-loader": "^6.0.6",
-    "vue": "^2.5.2"
+    "vue": "^2.5.2",
+    "vuedraggable": "^2.16.0"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
