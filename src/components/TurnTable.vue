@@ -1,6 +1,5 @@
 <template lang="pug">
 .container
-  h1 {{ currentResult || '2' }}
   //- 提示文字
   .alert.alert-info.text-center.mx-auto.w-75.mt-5.fade(v-if="config.showAlert", :class="{'alert--show': currentResult}") {{ currentResult }}
   //- 轉盤本體
