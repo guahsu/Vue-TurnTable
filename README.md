@@ -1,6 +1,9 @@
 # Vue.js 大～～轉～～盤
 ![](https://guahsu.io/2018/01/vue-turntable/Vue-TurnTable-1.png) 
 
+## DEMO
+[https://guahsu.io/Vue-TurnTable/dist/](https://guahsu.io/Vue-TurnTable/dist/)
+
 ## 功能
 ### 1. 區塊設定
 設定每個區塊的資料，機率可以隨意數字最後會加總去算成百分比，  
@@ -32,5 +35,5 @@ PUG / SCSS / Vue.js / Bootstrap4 / [Vue.Draggable](https://github.com/SortableJS
 #### 更新紀錄
 2018/01/13 修正排版，新增轉盤設定檔LocalStorage儲存功能，增修部分備註。  
 2018/01/17 修正轉盤未置中問題，新增區塊編輯文字大小功能。  
-2018/01/18 更改canvas比例依據裝置解析度調整，調整預設文字隨字數控制比例。
+2018/01/18 更改canvas比例依據裝置解析度調整，調整預設文字隨字數控制比例。  
 2018/01/19 合併轉盤設定與排版＆修改區塊編輯方式，新增設定存檔功能。
