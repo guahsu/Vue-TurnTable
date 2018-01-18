@@ -278,9 +278,9 @@
       defaultSectorColor() {
         return this.getDefaultSectorColor();
       },
-      /** 取得裝置像素比例 */
+      /** 取得裝置像素比例(至少用兩倍來避免canvas繪製模糊) */
       pixelRatio() {
-        return window.devicePixelRatio || 1;
+        return window.devicePixelRatio * 2 || 2;
       },
     },
     methods: {
@@ -390,9 +390,10 @@
           ctx.rotate(angle / 2);
           ctx.fillStyle = data.textColor || this.config.textColor;
           ctx.font = data.textSize ?
-            `${data.textSize}px Microsoft JhengHei` : `${(this.config.baseSize / data.text.length) / this.pixelRatio}px Microsoft JhengHei`;
+            `${data.textSize}px Microsoft JhengHei` :
+            `${(this.config.baseSize / data.text.length) * (this.pixelRatio / 4)}px Microsoft JhengHei`;
           ctx.textBaseline = 'middle';
-          ctx.fillText(data.text, centerPoint / 2.3, 0);
+          ctx.fillText(data.text, centerPoint / 2.25, 0);
           //
           ctx.restore();
         });
