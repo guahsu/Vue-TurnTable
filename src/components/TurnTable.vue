@@ -74,7 +74,7 @@
                 //- 單塊新增模式
                 .editBySet.w-100(v-if="giftEditMode")
                   .table-responsive
-                    table.table.table-bordered.table-hover.table-sm.mt-1
+                    table.table.table-bordered.table-sm.mt-1
                       thead.text-center
                         tr
                           th(scope="col", width="10%") 區塊占比
@@ -388,6 +388,7 @@
       },
       saveGiftData(index) {
         const gift = this.gifts[index];
+        delete gift.clone;
         gift.edit = false;
       },
       cancleGiftData(index) {
