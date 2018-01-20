@@ -479,6 +479,7 @@
           /** 邊框繪製 */
           ctx.lineWidth = this.config.borderWidth * this.pixelRatio;
           ctx.strokeStyle = this.config.borderColor;
+          ctx.closePath();
           ctx.stroke();
           // 內容文字繪製
           ctx.rotate(angle / 2);
